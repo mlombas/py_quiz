@@ -4,8 +4,10 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from os import listdir
 from os.path import isfile, join
 
-files = [f for f in listdir() if isfile(f)]
-problems = {p: Problem.from_file(p) for p in files if p.endswith(".txt")}
+#Read problems from directory
+problem_directory = "problems"
+files = [f for f in listdir(problem_directory) if isfile(join(problem_directory, f))]
+problems = {p: Problem.from_file(join(problem_directory, p)) for p in files if p.endswith(".txt")}
 
 class ProblemServer(BaseHTTPRequestHandler):
     def _set_response(self, content):
