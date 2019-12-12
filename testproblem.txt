@@ -1,4 +1,4 @@
-%Note that the sections need not to be in any specific order
+#Note that the sections need not to be in any specific order
 statment:
    Write a line of code that calculates the average of a and b
 initialization:

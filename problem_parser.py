@@ -1,3 +1,24 @@
+class Problem:
+    def __init__(self, text, initialization, check, meta={}):
+        self.text = text
+        self.initialization = initialization
+        self.check = check
+        self.meta = meta
+
+    @classmethod
+    def from_file(cls, filename):
+        return cls(*get_from_file(filename))
+
+    def statment(self):
+        return self.text
+
+    def execute(self, user_code):
+        exec(self.initialization, globals())
+        exec("result = " + user_code, globals())
+        exec("correct = " + self.check, globals())
+        return correct
+
+
 def get_indentation(line):
     return len(line) - len(line.lstrip())
 
@@ -14,7 +35,7 @@ def read_paragraph(text, line_index):
     return "\n".join(result)
 
 
-def parse_variables(code):
+def parse_variables(code, initialization):
     variables = []
     text = []
     #Iterate over stripped lines
@@ -25,7 +46,10 @@ def parse_variables(code):
         #If not description, simply add "A " + the type
         else:
             var_code = rest
-            var_description = f"A + {type(eval(var_code)).__name__}"
+
+            #Initialize in case it uses some module
+            exec(initialization, globals())
+            var_description = f"A variable of type {type(eval(var_code)).__name__}"
 
         text.append(f"{var_name}: {var_description}")
         variables.append(f"{var_name} = {var_code}")
@@ -50,23 +74,17 @@ def parse_problem(code):
             #the user should read
             text = read_paragraph(code, i) + "\n" + text
         elif section == "check":
-            check = "correct = " + read_paragraph(code, i)
+            check = read_paragraph(code, i)
         elif section == "initialization":
             initialization = read_paragraph(code, i) + "\n" + initialization
         elif section == "variables":
             v_paragraph = read_paragraph(code, i)
-            v_text, v_code = parse_variables(v_paragraph)
-            text += v_text
-            initialization += "\n" + v_code
 
+
+    v_text, v_code = parse_variables(v_paragraph, initialization)
+    text += v_text
+    initialization += "\n" + v_code
     return text, initialization, check
-
-
-def execute_code(initialization, user_code, check):
-    #Join all and execute
-    text = "\n".join([initialization, "result = " + user_code, check])
-    exec(text, globals())
-    return correct
 
 
 def get_from_file(filename):
@@ -78,13 +96,13 @@ def get_from_file(filename):
 
 if __name__ == "__main__":
     fname = input("Enter a file to read: ")
-    text, init, check = get_from_file(fname)
+    prob = Problem.from_file(fname)
 
-    print(text)
+    print(prob.statment())
     #Check that the user hasnt introduced that by error
     while (user_answer := input("Enter your answer: ")).strip() == "": pass
 
-    is_correct = execute_code(init, user_answer, check)
+    is_correct = prob.execute(user_answer)
     if is_correct:
         print("Well done!")
     else:

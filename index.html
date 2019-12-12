@@ -1,0 +1,89 @@
+<html>
+   <head>
+      <title>Py Quiz</title>
+      <script src="problem_manager.js"></script>
+   </head>
+   <body>
+      <p id="points">points: 0</p>
+      <div id="selection"></div>
+      <div id="form">
+         <pre id="statment"></pre>
+         <input id="input" type="text"></input> <button id="submit">submit</button>
+      </div>
+      <p id="end" style="color: green"></p>
+   <script>
+      let points = 0;
+      let readyToAns = false;
+
+      let problems = [];
+      let currProblem = "";
+      let currTries = 0;
+      document.querySelector("#submit").onclick = () => {
+         let ans = document.querySelector("#input").value;
+         if(!ans) alert("You must enter an answer before submitting!");
+         else if(readyToAns) {
+            currTries++;
+            fetch("/" + currProblem, {method: "POST", body: ans})
+               .then(data => data.json())
+               .then(correct => {
+                  if(correct) {
+                     addPoints(1/currTries);
+                     readyToAns = false;
+
+                     updateProblems();
+
+                     clearStatment();
+                  } else {
+                     alert("Sorry, try again!");
+                  }
+               });
+         }
+      }
+
+      fetch("http://localhost:8080/available", {
+         method: "GET"
+      })
+      .then(data => data.json())
+      .then(data => {
+         problems = data;
+         updateProblems();
+      });
+
+      function doProblem(problemName) {
+         currProblem = problemName;
+         currTries = 0;
+
+         fetch(problemName)
+         .then(data => data.text())
+         .then(statment => {
+            let div = document.querySelector("#form");
+            div.querySelector("pre").innerText = statment;
+            document.querySelector("#form").style.display = "block";
+            readyToAns = true;
+         });
+      }
+
+      function addPoints(extra) {
+         points += extra
+         document.querySelector("#points").innerText = "points: " + points;
+      }
+
+      function clearStatment() {
+         document.querySelector("#statment").innerText = "";
+         document.querySelector("#form").style.display = "none";
+         document.querySelector("#input").value = "";
+      }
+
+      function updateProblems() {
+         console.log(problems);
+         if(problems.length) {
+            doProblem(problems[0]);
+            problems.splice(0,1);
+         } else {
+            document.querySelector("#end").innerText = "You finished with " + points + " points!";
+            clearStatment();
+         }
+      }
+   </script>
+   </body>
+</html>

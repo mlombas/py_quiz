@@ -1,0 +1,8 @@
+statment:
+   Write an expression that sums te digits of a given number
+variables:
+   num = int("".join(random.choice(["1234567890"]) for _ in range(random.randint(0, 1000))))
+initialization:
+   import random
+check:
+   result == sum(int(d) for d in str(num))
