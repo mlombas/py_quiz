@@ -76,5 +76,16 @@ def get_from_file(filename):
     return parse_problem(text)
 
 
-print(get_from_file("testproblem.txt"))
+if __name__ == "__main__":
+    fname = input("Enter a file to read: ")
+    text, init, check = get_from_file(fname)
 
+    print(text)
+    #Check that the user hasnt introduced that by error
+    while (user_answer := input("Enter your answer: ")).strip() == "": pass
+
+    is_correct = execute_code(init, user_answer, check)
+    if is_correct:
+        print("Well done!")
+    else:
+        print("Do better next...")
